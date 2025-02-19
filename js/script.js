@@ -8,22 +8,27 @@ function init() {
   switch (global.currentPath) {
     case "/":
     case "/index.html":
+    case "/index":
       path = "home";
       displayPopularMovies();
       break;
     case "/shows.html":
+    case "/shows":
       path = "shows";
       displayPopularTVShows();
       break;
     case "/tv-details.html":
+    case "/tv-details":
       path = "tv-details";
       fetchSingleTVShow();
       break;
     case "/movie-details.html":
+    case "/movie-details":
       path = "movie-details";
       fetchSingleMovie();
       break;
     case "/search.html":
+    case "/search":
       path = "search";
       break;
   }
@@ -423,10 +428,9 @@ async function fetchSingleTVShow() {
           })()}</div>
         </div>
   `;
-  
+
   container.appendChild(div);
   document.querySelector(".spinner").classList.remove("show");
-
 }
 
 init();
