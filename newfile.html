@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    
+    // const p = new Promise(async(res,rej)=>{
+    //  const dat = (await fetch('/index.html')).text()
+    //  res(dat)
+    // })
+    // async function name() {
+    //   console.log(await p)
+    // }
+    // name()
+
+    async function fu() {
+      const co = (await fetch('https://jsonplaceholder.typicode.com/todos/1')).json()
+      return co
+    }
+
+    async function fu1() {
+      
+      console.log((await fu()))
+    }
+    fu1()
+  </script>
+</body>
+</html> 
