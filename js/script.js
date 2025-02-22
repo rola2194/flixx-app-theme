@@ -60,7 +60,32 @@ async function fetchAPIData(endpoint = "movie/popular") {
 // populate popular movies
 async function displayPopularMovies() {
   document.querySelector(".spinner").classList.add("show");
+//#region slider fetch and display
+  const sliderMovies = (await fetchAPIData("movie/now_playing")).results;
+  console.log(sliderMovies[0]);
+  sliderMovies.forEach((movie)=>{
+    const div = document.createElement('div')
+    div.className = 'swiper-slide'
+    div.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500/${movie.backdrop_path})`
+    div.style.backgroundSize = "cover";
+    div.style.backgroundPosition = "center";
+    div.style.backgroundColor = "rgba(2, 13, 24,0.90)";
+    div.style.backgroundBlendMode = "overlay";
+    div.style.backdropFilter = "blur(2000px)";
+    div.innerHTML= 
+    `<a href="movie-details.html?id=${movie.id}">
+      <img src=https://image.tmdb.org/t/p/w500${movie.poster_path} alt="Movie Title" />
+    </a>
+    <h4 class="swiper-rating">
+      <i class="fas fa-star text-secondary"></i> ${movie.vote_average} / 10
+    </h4>`
+    
+    document.querySelector('.swiper-wrapper').appendChild(div)
+    //document.querySelector(`#${movie.id}`)
+  })
 
+  initSlider();
+  //#endregion
   const movies = (await fetchAPIData("movie/popular")).results;
   movies.forEach((movie) => {
     const div = document.querySelector("#popular-movies");
@@ -112,6 +137,41 @@ async function displayPopularMovies() {
   });
   document.querySelector(".spinner").classList.remove("show");
 }
+
+// slider
+function initSlider() {
+  const swiper = new Swiper(".swiper", {
+    // Optional parameters
+    effect: "cube",
+    grabCursor: true,
+    cubeEffect: {
+      shadow: true,
+      slideShadows: true,
+      shadowOffset: 20,
+      shadowScale: 0.94,
+    },
+    pagination: {
+      el: ".swiper-pagination",
+    },
+
+    // If we need pagination
+    pagination: {
+      el: ".swiper-pagination",
+    },
+
+    // Navigation arrows
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
+
+    // And if we need scrollbar
+    scrollbar: {
+      el: ".swiper-scrollbar",
+    },
+  });
+}
+
 // populate popular TV shows
 async function displayPopularTVShows() {
   document.querySelector(".spinner").classList.add("show");
