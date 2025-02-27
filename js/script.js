@@ -1,9 +1,13 @@
 //#region variables
 let path = "";
-const global = { currentPath: window.location.pathname };
+const global = { 
+  currentPath: window.location.pathname,
+  page: 1,
+  totalPages: 1,
+};
 //#endregion
 
-// let path = '/correct_path.html'
+// Router
 function init() {
   switch (global.currentPath) {
     case "/":
@@ -30,6 +34,7 @@ function init() {
     case "/search.html":
     case "/search":
       path = "search";
+      searchSwitch();
       break;
   }
   highlight();
@@ -41,8 +46,7 @@ function highlight() {
   if (path === "home") navList[0].classList.add("active");
   else if (path === "shows") navList[1].classList.add("active");
 }
-
-// Fetch all data
+// Fetch all data (main function)
 async function fetchAPIData(endpoint = "movie/popular") {
   const API_KEY = "fed493d2a8f4f1205424cff893950a84";
   const API_URL = "https://api.themoviedb.org/3/";
@@ -56,33 +60,65 @@ async function fetchAPIData(endpoint = "movie/popular") {
   };
   return (await fetch(`${API_URL}${endpoint}`, option)).json();
 }
+// slider now playng movies
+function initSlider() {
+  const swiper = new Swiper(".swiper", {
+    // Optional parameters
+    effect: "cube",
+    loop: "true",
+    grabCursor: true,
+    cubeEffect: {
+      shadow: true,
+      slideShadows: true,
+      shadowOffset: 20,
+      shadowScale: 0.94,
+    },
+    pagination: {
+      el: ".swiper-pagination",
+    },
 
+    // If we need pagination
+    pagination: {
+      el: ".swiper-pagination",
+    },
+
+    // Navigation arrows
+    navigation: {
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
+
+    // And if we need scrollbar
+    scrollbar: {
+      el: ".swiper-scrollbar",
+    },
+  });
+}
 // populate popular movies
 async function displayPopularMovies() {
   document.querySelector(".spinner").classList.add("show");
-//#region slider fetch and display
+  //#region slider fetch and display
   const sliderMovies = (await fetchAPIData("movie/now_playing")).results;
-  console.log(sliderMovies[0]);
-  sliderMovies.forEach((movie)=>{
-    const div = document.createElement('div')
-    div.className = 'swiper-slide'
-    div.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500/${movie.backdrop_path})`
+  //console.log(sliderMovies[0]);
+  sliderMovies.forEach((movie) => {
+    const div = document.createElement("div");
+    div.className = "swiper-slide";
+    div.style.backgroundImage = `url(https://image.tmdb.org/t/p/w500/${movie.backdrop_path})`;
     div.style.backgroundSize = "cover";
     div.style.backgroundPosition = "center";
     div.style.backgroundColor = "rgba(2, 13, 24,0.90)";
     div.style.backgroundBlendMode = "overlay";
     div.style.backdropFilter = "blur(2000px)";
-    div.innerHTML= 
-    `<a href="movie-details.html?id=${movie.id}">
+    div.innerHTML = `<a href="movie-details.html?id=${movie.id}">
       <img src=https://image.tmdb.org/t/p/w500${movie.poster_path} alt="Movie Title" />
     </a>
     <h4 class="swiper-rating">
       <i class="fas fa-star text-secondary"></i> ${movie.vote_average} / 10
-    </h4>`
-    
-    document.querySelector('.swiper-wrapper').appendChild(div)
+    </h4>`;
+
+    document.querySelector(".swiper-wrapper").appendChild(div);
     //document.querySelector(`#${movie.id}`)
-  })
+  });
 
   initSlider();
   //#endregion
@@ -137,41 +173,6 @@ async function displayPopularMovies() {
   });
   document.querySelector(".spinner").classList.remove("show");
 }
-
-// slider
-function initSlider() {
-  const swiper = new Swiper(".swiper", {
-    // Optional parameters
-    effect: "cube",
-    grabCursor: true,
-    cubeEffect: {
-      shadow: true,
-      slideShadows: true,
-      shadowOffset: 20,
-      shadowScale: 0.94,
-    },
-    pagination: {
-      el: ".swiper-pagination",
-    },
-
-    // If we need pagination
-    pagination: {
-      el: ".swiper-pagination",
-    },
-
-    // Navigation arrows
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev",
-    },
-
-    // And if we need scrollbar
-    scrollbar: {
-      el: ".swiper-scrollbar",
-    },
-  });
-}
-
 // populate popular TV shows
 async function displayPopularTVShows() {
   document.querySelector(".spinner").classList.add("show");
@@ -405,6 +406,7 @@ async function fetchSingleMovie() {
   //#endregion
   document.querySelector(".spinner").classList.remove("show");
 }
+// fetching single TVShow
 async function fetchSingleTVShow() {
   document.querySelector(".spinner").classList.add("show");
 
@@ -492,5 +494,146 @@ async function fetchSingleTVShow() {
   container.appendChild(div);
   document.querySelector(".spinner").classList.remove("show");
 }
+//#region search functions
+async function fetchSearchMovies() {
+  document.querySelector(".spinner").classList.add("show");
+  document.querySelector('#search-results').replaceChildren()
+  let myURLID = window.location.search;
+  myURLID = new URLSearchParams(myURLID);
+  myURLID = myURLID.get("search-term");
+  myURLID = myURLID.trim().replace(" ", "%20");
 
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization:
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmZWQ0OTNkMmE4ZjRmMTIwNTQyNGNmZjg5Mzk1MGE4NCIsIm5iZiI6MTczOTEwMzA2My4zODQsInN1YiI6IjY3YTg5YjU3MDQwNTMyMDNiNmUwNGVjNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rAkXsxQ9bOGqBwUzJD3zl_E4sb_-qU6EI1WRILdOj0s",
+    },
+  };
+  const movies = await (
+    await fetch(
+      `https://api.themoviedb.org/3/search/movie?query=${myURLID}&include_adult=true&language=en-US&page=${global.page}`,
+      options
+    )
+  ).json();
+  //
+  global.totalPages = movies.total_pages
+  global.page = movies.page
+  document.querySelector('.page-counter').innerText = `Page ${global.page} of ${global.totalPages}`
+
+  const container = document.querySelector("#search-results");
+  movies.results.forEach((movie)=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = 
+         `<a href="movie-details.html?id=${movie.id}">
+            <img src=https://image.tmdb.org/t/p/w500${movie.poster_path} class="card-img-top" alt="" />
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">${movie.title}</h5>
+            <p class="card-text">
+              <small class="text-muted">Release: ${(()=>{
+                const date = new Date(movie.release_date);
+                if (date != 'Invalid Date')
+                  {return date.toLocaleDateString("it-it")}
+                  else {return 'Date Unknown'}
+
+              })()}</small>
+            </p>
+          </div>`;
+    container.appendChild(card)
+  })
+  document.querySelector(".spinner").classList.remove("show");
+}
+async function fetchSearchTVShows() {
+  document.querySelector('#search-results').replaceChildren()
+  document.querySelector(".spinner").classList.add("show");
+  let myURLID = window.location.search;
+  myURLID = new URLSearchParams(myURLID);
+  myURLID = myURLID.get("search-term");
+  myURLID = myURLID.trim().replace(" ", "%20");
+
+  const options = {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      Authorization:
+        "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmZWQ0OTNkMmE4ZjRmMTIwNTQyNGNmZjg5Mzk1MGE4NCIsIm5iZiI6MTczOTEwMzA2My4zODQsInN1YiI6IjY3YTg5YjU3MDQwNTMyMDNiNmUwNGVjNSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.rAkXsxQ9bOGqBwUzJD3zl_E4sb_-qU6EI1WRILdOj0s",
+    },
+  };
+  const shows = await (
+    await fetch(
+      `https://api.themoviedb.org/3/search/tv?query=${myURLID}&include_adult=true&language=en-US&page=${global.page}`,
+      options
+    )
+  ).json();
+  global.totalPages = shows.total_pages
+  global.page = shows.page
+  document.querySelector('.page-counter').innerText = `Page ${global.page} of ${global.totalPages}`
+  //
+  const container = document.querySelector("#search-results");
+  shows.results.forEach((show)=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = 
+         `<a href="tv-details.html?id=${show.id}">
+            <img src=https://image.tmdb.org/t/p/w500${show.poster_path} class="card-img-top" alt="" />
+          </a>
+          <div class="card-body">
+            <h5 class="card-title">${show.name}</h5>
+            <p class="card-text">
+              <small class="text-muted">First Air: ${(()=>{
+                const date = (new Date(show.first_air_date));
+                if (date != 'Invalid Date')
+                {return date.toLocaleDateString("it-it")}
+                else {return 'Date Unknown'}
+              })()}</small>
+            </p>
+          </div>`;
+    container.appendChild(card)
+  })
+  document.querySelector(".spinner").classList.remove("show");
+}
+async function searchSwitch(){
+  let movieOrTV = window.location.search;
+  movieOrTV = new URLSearchParams(movieOrTV);
+  movieOrTV = movieOrTV.get("type");
+  console.log(movieOrTV)
+  switch (movieOrTV) {
+    case 'movie':
+      fetchSearchMovies()
+      document.querySelector('#next').addEventListener('click',()=>{
+        if(global.page < global.totalPages){
+          global.page += 1
+          fetchSearchMovies()
+        }
+      })
+      document.querySelector('#prev').addEventListener('click',()=>{
+        if(global.page > 1){
+          global.page -= 1
+          fetchSearchMovies()
+        }
+      })
+      break;
+  
+    case 'tv':
+      document.getElementById("tv").checked = true;
+      fetchSearchTVShows()
+      document.querySelector('#next').addEventListener('click',()=>{
+        global.page += 1
+        fetchSearchTVShows()
+      })
+      document.querySelector('#prev').addEventListener('click',()=>{
+        if(global.page > 1){
+          global.page -= 1
+          fetchSearchTVShows()
+        }
+      })
+      break;
+  }
+
+
+}
+//#endregion
 init();
