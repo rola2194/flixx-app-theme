@@ -1,4 +1,5 @@
 ## An IMDB like site >>> [Flix-App.com](https://movies-app-rola.netlify.app/)
+###### Contact me at: rola2194.dev@gmail.com
 ### Features:
 ### 1. Main page with now playng section and popular movies, same for TV shows
 ### 2. Search bar for both movies and tv shows
